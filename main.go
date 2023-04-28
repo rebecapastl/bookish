@@ -28,4 +28,11 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+
+	// create tables
+	err = CreateTables(db)
+	if err != nil{
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
