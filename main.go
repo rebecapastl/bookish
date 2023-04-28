@@ -46,6 +46,8 @@ func main() {
 	})
 	r.HandleFunc("/books", createBook).Methods("POST")
 	r.HandleFunc("/books", listBooks).Methods("GET")
+	r.HandleFunc("/collections", listCollections).Methods("GET")
+	r.HandleFunc("/collections", createCollection).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
@@ -89,4 +91,45 @@ func listBooks(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(books)
+}
+
+func createCollection(w http.ResponseWriter, r *http.Request) {
+	var collection *Collection
+	var collectionArgs CollectionArgs
+
+	err := json.NewDecoder(r.Body).Decode(&collectionArgs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	collection, err = CreateCollection(db, collectionArgs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(collection)
+}
+
+func listCollections(w http.ResponseWriter, r *http.Request) {
+    collectionArgs := &CollectionArgs{}
+	if r.ContentLength != 0 {
+		err = json.NewDecoder(r.Body).Decode(collectionArgs)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			
+			return
+		}
+	}
+
+    collections, err := ListCollections(db, *collectionArgs)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+	w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(collections)
 }

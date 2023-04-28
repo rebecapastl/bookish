@@ -219,3 +219,54 @@ func ListBooks(db *sql.DB, m BookArgs) ([]Book, error) {
 
     return books, nil
 }
+
+func CreateCollection(db *sql.DB, c CollectionArgs) (*Collection, error){
+	var collection Collection
+
+	err := db.QueryRow("INSERT INTO collections (collection_name) VALUES ($1) ON CONFLICT DO NOTHING RETURNING collection_id, collection_name, creation_date", c.CollectionName).Scan(&collection.CollectionID, &collection.CollectionName, &collection.CreationDate)
+	if err != nil {
+        if err == sql.ErrNoRows{
+            err = errors.New("collection already exists in the database")
+        }
+        return nil, err
+	}
+	fmt.Printf("Collection %s created with ID %d\n", collection.CollectionName, collection.CollectionID)
+
+	return &collection, nil
+}
+
+func ListCollections(db *sql.DB, c CollectionArgs) ([]Collection, error) {
+    var collections []Collection
+
+    query := "SELECT * FROM collections"
+
+    whereClauses := []string{}
+    if c.CollectionID != nil {
+        whereClauses = append(whereClauses, fmt.Sprintf("collection_id = %d", *c.CollectionID))
+    }
+    if c.CollectionName != nil {
+        whereClauses = append(whereClauses, fmt.Sprintf("collection_name = '%s'", *c.CollectionName))
+    }
+
+    if len(whereClauses) > 0 {
+        query += "WHERE " + strings.Join(whereClauses, " AND ")
+    }
+
+    rows, err := db.Query(query)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    err = rows.Err()
+    if err != nil {
+        return nil, err
+    }
+
+	if len(collections) == 0{
+        err = errors.New("no collections with the chosen specification")
+		return nil, err
+	}
+
+    return collections, nil
+}

@@ -30,3 +30,15 @@ type Book struct {
 	Author     string    `json:"author"`
 	CreationDate time.Time `json:"creation_date"`
 }
+
+type CollectionArgs struct {
+	CollectionID	*int	`json:"collection_id"`
+	CollectionName *string `json:"collection_name"`
+}
+
+type Collection struct {
+	CollectionID   int	`json:"collection_id"`
+	CollectionName string `json:"collection_name"`
+	CreationDate	time.Time `json:"creation_date"`
+	CollectionBooks	[]Book
+}
