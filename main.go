@@ -45,6 +45,7 @@ func main() {
 		fmt.Fprintln(w, "Welcome to the Books Database")
 	})
 	r.HandleFunc("/books", createBook).Methods("POST")
+	r.HandleFunc("/books", listBooks).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
@@ -67,4 +68,25 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(book)
+}
+
+func listBooks(w http.ResponseWriter, r *http.Request) {
+    bookArgs := &BookArgs{}
+	if r.ContentLength != 0 {
+		err = json.NewDecoder(r.Body).Decode(bookArgs)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			
+			return
+		}
+	}
+
+    books, err := ListBooks(db, *bookArgs)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+	w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(books)
 }
