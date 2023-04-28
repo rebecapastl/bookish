@@ -2,8 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
-	
+
 	_ "github.com/lib/pq"
 )
 
@@ -84,4 +85,84 @@ func CreateTables(db *sql.DB) error {
 	}
 
 	return nil
+}
+
+func CreateAuthor(db *sql.DB, d AuthorArgs) (*Author, error){
+	var author Author
+	var err error
+
+	err = db.QueryRow("INSERT INTO authors (name) VALUES ($1) ON CONFLICT DO NOTHING RETURNING author_id, name, creation_date", d.Name).Scan(&author.AuthorID, &author.Name, &author.CreationDate)
+    if err != nil {
+        if err == sql.ErrNoRows{
+            err = errors.New("author already exists in the database")
+        }
+        return nil, err
+    }
+	fmt.Printf("Author %s created with ID %d\n", author.Name, author.AuthorID)
+
+	return &author, nil
+}
+
+func ListAuthors(db *sql.DB, d AuthorArgs) ([]Author, error) {
+	var authors []Author
+
+	query := "SELECT * FROM authors"
+	if d.Name != nil {
+		query += " WHERE name = '" + *d.Name + "'"
+	}
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var author Author
+		err := rows.Scan(&author.AuthorID, &author.Name, &author.CreationDate)
+		if err != nil {
+			return nil, err
+		}
+		authors = append(authors, author)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return authors, nil
+}
+
+func CreateBook(db *sql.DB, m BookArgs) (*Book, error){
+    var author *Author
+    var err error
+
+    // try to fetch said author
+    authors, err := ListAuthors(db, AuthorArgs{Name: m.Author})
+	if err != nil{
+		return nil, err
+	}
+
+    // create a new one in case the author is not in the db
+    if len(authors) == 0{
+        author, err = CreateAuthor(db, AuthorArgs{Name: m.Author})
+        if err != nil{
+            return nil, err
+        }
+    } else {
+        author = &authors[0]
+    }
+
+    var book Book
+    err = db.QueryRow("INSERT INTO books (title, author_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING book_id, title, creation_date", m.Title, author.AuthorID).Scan(&book.BookID, &book.Title, &book.CreationDate)
+    if err != nil {
+        if err == sql.ErrNoRows{
+            err = errors.New("book already exists in the database")
+        }
+        return nil, err
+    }
+
+    book.Author = author.Name
+    fmt.Printf("Book %s created with ID %d\n", book.Title, book.BookID)
+
+    return &book, nil
 }
