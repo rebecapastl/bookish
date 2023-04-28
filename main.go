@@ -62,6 +62,7 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 	var book *Book
 	var bookArgs BookArgs
 
+	// decode request into argumets to function
 	err := json.NewDecoder(r.Body).Decode(&bookArgs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -74,12 +75,16 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	message := fmt.Sprintf("Book %s created with ID %d\n", book.Title, book.BookID)
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(message))
 	json.NewEncoder(w).Encode(book)
 }
 
 func listBooks(w http.ResponseWriter, r *http.Request) {
     bookArgs := &BookArgs{}
+
+	// decode request into argumets to function
 	if r.ContentLength != 0 {
 		err = json.NewDecoder(r.Body).Decode(bookArgs)
 		if err != nil {
@@ -103,6 +108,7 @@ func createCollection(w http.ResponseWriter, r *http.Request) {
 	var collection *Collection
 	var collectionArgs CollectionArgs
 
+	// decode request into argumets to function
 	err := json.NewDecoder(r.Body).Decode(&collectionArgs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -115,12 +121,16 @@ func createCollection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
+	message := fmt.Sprintf("Collection %s created with ID %d\n", collection.CollectionName, collection.CollectionID)
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(message))
 	json.NewEncoder(w).Encode(collection)
 }
 
 func listCollections(w http.ResponseWriter, r *http.Request) {
     collectionArgs := &CollectionArgs{}
+
+	// decode request into argumets to function
 	if r.ContentLength != 0 {
 		err = json.NewDecoder(r.Body).Decode(collectionArgs)
 		if err != nil {
@@ -142,7 +152,9 @@ func listCollections(w http.ResponseWriter, r *http.Request) {
 
 func addBookToCollection(w http.ResponseWriter, r *http.Request) {
 	addArgs := &AddBookToCollectionArgs{}
-    err := json.NewDecoder(r.Body).Decode(&addArgs)
+    
+	// decode request into argumets to function
+	err := json.NewDecoder(r.Body).Decode(&addArgs)
     if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
         return

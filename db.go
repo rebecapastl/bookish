@@ -118,7 +118,7 @@ func ListAuthors(db *sql.DB, a AuthorArgs) ([]Author, error) {
 	}
 	defer rows.Close()
 
-	for rows.Next() {
+	for rows.Next() { // Use Next to advance from row to row. It prepares the next result row for reading with the Scan, even the first call must be preceded by a call to Next.
 		var author Author
 		err := rows.Scan(&author.AuthorID, &author.Name, &author.CreationDate)
 		if err != nil {
@@ -181,6 +181,7 @@ func ListBooks(db *sql.DB, b BookArgs) ([]Book, error) {
         JOIN authors ON books.author_id = authors.author_id
         `
 
+	// add to the wehre clause if it was present in the request args
     whereClauses := []string{}
     if b.BookID != nil {
         whereClauses = append(whereClauses, fmt.Sprintf("books.book_id = %d", *b.BookID))
@@ -251,6 +252,7 @@ func ListCollections(db *sql.DB, c CollectionArgs) ([]Collection, error) {
 		LEFT JOIN authors ON books.author_id = authors.author_id
     `
 
+	// add to the wehre clause if it was present in the request args
     whereClauses := []string{}
     if c.CollectionID != nil {
         whereClauses = append(whereClauses, fmt.Sprintf("collections.collection_id = %d", *c.CollectionID))
@@ -271,8 +273,9 @@ func ListCollections(db *sql.DB, c CollectionArgs) ([]Collection, error) {
     }
     defer rows.Close()
 
+	// add book structs to each collection struct, if that collection has a book related to it
     var currentCollection *Collection
-    for rows.Next() { // Use Next to advance from row to row. It prepares the next result row for reading with the Scan, even the first call must be preceded by a call to Next.
+    for rows.Next() {
         var book Book
         var collection Collection
 		var bookID sql.NullInt64 // so we can scan even if there is no book associated to the collection
@@ -291,6 +294,7 @@ func ListCollections(db *sql.DB, c CollectionArgs) ([]Collection, error) {
             currentCollection = &collections[len(collections)-1]
         }
 
+		// create book object
 		if bookID.Valid {
 			book.BookID = int(bookID.Int64)
 		}
