@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -165,4 +166,56 @@ func CreateBook(db *sql.DB, m BookArgs) (*Book, error){
     fmt.Printf("Book %s created with ID %d\n", book.Title, book.BookID)
 
     return &book, nil
+}
+
+func ListBooks(db *sql.DB, m BookArgs) ([]Book, error) {
+    var books []Book
+
+    query := `
+        SELECT books.book_id, books.title, authors.name, books.creation_date
+        FROM books
+        JOIN authors ON books.author_id = authors.author_id
+        `
+
+    whereClauses := []string{}
+    if m.BookID != nil {
+        whereClauses = append(whereClauses, fmt.Sprintf("books.book_id = %d", *m.BookID))
+    }
+    if m.Title != nil {
+        whereClauses = append(whereClauses, fmt.Sprintf("books.title = '%s'", *m.Title))
+    }
+    if m.Author != nil {
+        whereClauses = append(whereClauses, fmt.Sprintf("authors.name = '%s'", *m.Author))
+    }
+
+    if len(whereClauses) > 0 {
+        query += "WHERE " + strings.Join(whereClauses, " AND ")
+    }
+
+    rows, err := db.Query(query)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var book Book
+        err := rows.Scan(&book.BookID, &book.Title, &book.Author, &book.CreationDate)
+        if err != nil {
+            return nil, err
+        }
+        books = append(books, book)
+    }
+
+	err = rows.Err()
+    if err != nil {
+        return nil, err
+    }
+
+	if len(books) == 0{
+		err = errors.New("no books with the chosen specification")
+        return nil, err
+	}
+
+    return books, nil
 }
