@@ -40,18 +40,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Welcome to the Books Database")
-	})
-	r.HandleFunc("/books", createBook).Methods("POST")
-	r.HandleFunc("/books", listBooks).Methods("GET")
-	r.HandleFunc("/collections", listCollections).Methods("GET")
-	r.HandleFunc("/collections", createCollection).Methods("POST")
-	r.HandleFunc("/collections/add_book", addBookToCollection).Methods("POST")
+	if len(os.Args) > 1 {
+		CLIcommands()
+	} else {
+		r := mux.NewRouter()
+		r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintln(w, "Welcome to the Books Database")
+		})
+		r.HandleFunc("/books", createBook).Methods("POST")
+		r.HandleFunc("/books", listBooks).Methods("GET")
+		r.HandleFunc("/collections", listCollections).Methods("GET")
+		r.HandleFunc("/collections", createCollection).Methods("POST")
+		r.HandleFunc("/collections/add_book", addBookToCollection).Methods("POST")
 
 
-	log.Fatal(http.ListenAndServe(":8080", r))
+		log.Fatal(http.ListenAndServe(":8080", r))
+	}
 }
 
 func createBook(w http.ResponseWriter, r *http.Request) {

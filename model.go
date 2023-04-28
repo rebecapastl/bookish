@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"flag"
+	"time"
+)
 
 type Config struct {
 	Database struct {
@@ -46,4 +49,18 @@ type Collection struct {
 type AddBookToCollectionArgs struct {
 	BookID      *int `json:"book_id"`
 	CollectionID *int `json:"collection_id"`
+}
+
+// Command represents a command with its subcommands and associated flags.
+type Command struct {
+	name        string
+	description string
+	subcommands []*Subcommand
+}
+
+// Subcommand represents a subcommand with its associated flags.
+type Subcommand struct {
+	name        string
+	description string
+	flags       *flag.FlagSet
 }
