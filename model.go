@@ -42,3 +42,8 @@ type Collection struct {
 	CreationDate	time.Time `json:"creation_date"`
 	CollectionBooks	[]Book
 }
+
+type AddBookToCollectionArgs struct {
+	BookID      *int `json:"book_id"`
+	CollectionID *int `json:"collection_id"`
+}

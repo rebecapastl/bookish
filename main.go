@@ -48,6 +48,8 @@ func main() {
 	r.HandleFunc("/books", listBooks).Methods("GET")
 	r.HandleFunc("/collections", listCollections).Methods("GET")
 	r.HandleFunc("/collections", createCollection).Methods("POST")
+	r.HandleFunc("/collections/add_book", addBookToCollection).Methods("POST")
+
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
@@ -132,4 +134,23 @@ func listCollections(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(collections)
+}
+
+func addBookToCollection(w http.ResponseWriter, r *http.Request) {
+	addArgs := &AddBookToCollectionArgs{}
+    err := json.NewDecoder(r.Body).Decode(&addArgs)
+    if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+	collection, book, err := AddBookToCollection(db, *addArgs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	message := fmt.Sprintf("Book %s added to collection %s\n", book.Title, collection.CollectionName)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(message))
+    
 }
