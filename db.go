@@ -54,7 +54,7 @@ func CreateTables(db *sql.DB) error {
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS books (
         book_id SERIAL PRIMARY KEY,
         title VARCHAR(100) NOT NULL, CHECK (title <> ''),
-		release_date DATE,
+		published_date DATE,
 		edition_number INT,
 		creation_date DATE DEFAULT CURRENT_DATE,
         author_id INT NOT NULL,
@@ -134,7 +134,7 @@ func CreateBook(db *sql.DB, b BookArgs) (*Book, error){
     var author *Author
     var err error
 
-    if b.Title == nil{
+    if b.Title == nil || *b.Title == "" {
         return nil, errors.New("no book title set, book not created") 
     }
 
@@ -226,7 +226,7 @@ func ListBooks(db *sql.DB, b BookArgs) ([]Book, error) {
 func CreateCollection(db *sql.DB, c CollectionArgs) (*Collection, error){
 	var collection Collection
 
-    if c.CollectionName == nil{
+    if c.CollectionName == nil || *c.CollectionName == "" {
         return nil, errors.New("no collection name set, collection not created") 
     }
 
