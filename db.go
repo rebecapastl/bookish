@@ -84,6 +84,9 @@ func CreateAuthor(db *sql.DB, a AuthorArgs) (*Author, error){
 	var author Author
 	var err error
 
+    // make sure author is not null(empty)
+	a.Name = SanitizeAuthorName(a.Name)
+
 	err = db.QueryRow("INSERT INTO authors (name) VALUES ($1) ON CONFLICT DO NOTHING RETURNING author_id, name, creation_date", a.Name).Scan(&author.AuthorID, &author.Name, &author.CreationDate)
     if err != nil {
         if err == sql.ErrNoRows{
@@ -131,8 +134,9 @@ func CreateBook(db *sql.DB, b BookArgs) (*Book, error){
     var author *Author
     var err error
 
-	// make sure author is not null(empty)
-	b.Author = SanitizeAuthorName(b.Author)
+    if b.Title == nil{
+        return nil, errors.New("no book title set, book not created") 
+    }
 
     // try to fetch said author, if there is no author no error returns
     // it is just a heads up to the CreateBook function, so it creates a new author for the book
@@ -221,6 +225,10 @@ func ListBooks(db *sql.DB, b BookArgs) ([]Book, error) {
 
 func CreateCollection(db *sql.DB, c CollectionArgs) (*Collection, error){
 	var collection Collection
+
+    if c.CollectionName == nil{
+        return nil, errors.New("no collection name set, collection not created") 
+    }
 
 	err := db.QueryRow("INSERT INTO collections (collection_name) VALUES ($1) ON CONFLICT DO NOTHING RETURNING collection_id, collection_name, creation_date", c.CollectionName).Scan(&collection.CollectionID, &collection.CollectionName, &collection.CreationDate)
 	if err != nil {

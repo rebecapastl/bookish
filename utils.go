@@ -4,7 +4,7 @@ import "strconv"
 
 func SanitizeAuthorName(name *string) *string {
 	if name == nil {
-		anounymous := "anonymous"
+		anounymous := "Anonymous"
 		name = &anounymous
 	}
 	return name

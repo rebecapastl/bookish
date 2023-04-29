@@ -68,6 +68,16 @@ func (suite *DbTestSuite) TestCreateAuthor() {
 	suite.Equal(authorName, author.Name)
 }
 
+func (suite *DbTestSuite) TestCreateAuthor_NoName() {
+	// Function to test
+	author, err := main.CreateAuthor(suite.db, main.AuthorArgs{})
+
+	// Verification
+	suite.NoError(err)
+	suite.NotNil(author)
+	suite.Equal("Anonymous", author.Name)
+}
+
 func (suite *DbTestSuite) TestCreateAuthor_DuplicateAuthor() {
 	// Setup
 	authorName := "J. R. R. Tolkien"
@@ -145,6 +155,16 @@ func (suite *DbTestSuite) TestListAuthors_NoAuthor() {
 	suite.Empty(authors)
 }
 
+func (suite *DbTestSuite) TestCreateBook_NoTitle() {
+	// Function to test
+    book, err := main.CreateBook(suite.db, main.BookArgs{})
+
+    // Verification
+	suite.Error(err)
+	suite.Equal("no book title set, book not created", err.Error())
+	suite.Nil(book)
+}
+
 func (suite *DbTestSuite) TestCreateBook_WithAuthor() {
     // Setup
 	author := "J. R. R. Tolkien"
@@ -169,7 +189,7 @@ func (suite *DbTestSuite) TestCreateBook_WithoutAuthor() {
     // Verification
 	suite.NoError(err)
 	suite.Equal(bookName, book.Title)
-    suite.Equal("anonymous", book.Author)
+    suite.Equal("Anonymous", book.Author)
 }
 
 func (suite *DbTestSuite) TestCreateBook_DuplicateBook() {
@@ -322,6 +342,16 @@ func (suite *DbTestSuite) TestCreateCollection() {
 	suite.NoError(err)
 	suite.NotNil(collection)
 	suite.Equal(collectionName, collection.CollectionName)
+}
+
+func (suite *DbTestSuite) TestCreateBook_NoName() {
+	// Function to test
+    collection, err := main.CreateCollection(suite.db, main.CollectionArgs{})
+
+    // Verification
+	suite.Error(err)
+	suite.Equal("no collection name set, collection not created", err.Error())
+	suite.Nil(collection)
 }
 
 func (suite *DbTestSuite) TestCreateCollection_DuplicateCollection() {
