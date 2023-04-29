@@ -15,7 +15,7 @@ func ConnectToDb(url string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	} else {
-		fmt.Println("openned database")
+		fmt.Println("opened database")
 	}
 
 	if err := db.Ping(); err != nil {
