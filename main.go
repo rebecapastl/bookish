@@ -47,22 +47,22 @@ func main() {
 		r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintln(w, "Welcome to the Books Database")
 		})
-		r.HandleFunc("/books", createBook).Methods("POST")
-		r.HandleFunc("/books", listBooks).Methods("GET")
-		r.HandleFunc("/collections", listCollections).Methods("GET")
-		r.HandleFunc("/collections", createCollection).Methods("POST")
-		r.HandleFunc("/collections/add_book", addBookToCollection).Methods("POST")
+		r.HandleFunc("/books", CreateBookHandler).Methods("POST")
+		r.HandleFunc("/books", ListBookHandler).Methods("GET")
+		r.HandleFunc("/collections", ListCollectionHandler).Methods("GET")
+		r.HandleFunc("/collections", CreateCollectionHandler).Methods("POST")
+		r.HandleFunc("/collections/add_book", AddBookToCollectionHandler).Methods("POST")
 
 
 		log.Fatal(http.ListenAndServe(":8080", r))
 	}
 }
 
-func createBook(w http.ResponseWriter, r *http.Request) {
+func CreateBookHandler(w http.ResponseWriter, r *http.Request) {
 	var book *Book
 	var bookArgs BookArgs
 
-	// decode request into argumets to function
+	// decode request into arguments to function
 	err := json.NewDecoder(r.Body).Decode(&bookArgs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -81,7 +81,7 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
-func listBooks(w http.ResponseWriter, r *http.Request) {
+func ListBookHandler(w http.ResponseWriter, r *http.Request) {
     bookArgs := &BookArgs{}
 
 	// decode request into argumets to function
@@ -104,7 +104,7 @@ func listBooks(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(books)
 }
 
-func createCollection(w http.ResponseWriter, r *http.Request) {
+func CreateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	var collection *Collection
 	var collectionArgs CollectionArgs
 
@@ -127,7 +127,7 @@ func createCollection(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(collection)
 }
 
-func listCollections(w http.ResponseWriter, r *http.Request) {
+func ListCollectionHandler(w http.ResponseWriter, r *http.Request) {
     collectionArgs := &CollectionArgs{}
 
 	// decode request into argumets to function
@@ -150,7 +150,7 @@ func listCollections(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(collections)
 }
 
-func addBookToCollection(w http.ResponseWriter, r *http.Request) {
+func AddBookToCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	addArgs := &AddBookToCollectionArgs{}
     
 	// decode request into argumets to function
