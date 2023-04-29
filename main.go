@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -65,6 +66,9 @@ func CreateBookHandler(w http.ResponseWriter, r *http.Request) {
 	// decode request into arguments to function
 	err := json.NewDecoder(r.Body).Decode(&bookArgs)
 	if err != nil {
+		if err.Error() == "EOF" {
+			err = errors.New("no book title set, book not created")
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -84,7 +88,7 @@ func CreateBookHandler(w http.ResponseWriter, r *http.Request) {
 func ListBookHandler(w http.ResponseWriter, r *http.Request) {
     bookArgs := &BookArgs{}
 
-	// decode request into argumets to function
+	// decode request into arguments to function
 	if r.ContentLength != 0 {
 		err = json.NewDecoder(r.Body).Decode(bookArgs)
 		if err != nil {
@@ -108,9 +112,12 @@ func CreateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	var collection *Collection
 	var collectionArgs CollectionArgs
 
-	// decode request into argumets to function
+	// decode request into arguments to function
 	err := json.NewDecoder(r.Body).Decode(&collectionArgs)
 	if err != nil {
+		if err.Error() == "EOF" {
+			err = errors.New("no collection title set, collection not created")
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -130,7 +137,7 @@ func CreateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 func ListCollectionHandler(w http.ResponseWriter, r *http.Request) {
     collectionArgs := &CollectionArgs{}
 
-	// decode request into argumets to function
+	// decode request into arguments to function
 	if r.ContentLength != 0 {
 		err = json.NewDecoder(r.Body).Decode(collectionArgs)
 		if err != nil {
@@ -153,7 +160,7 @@ func ListCollectionHandler(w http.ResponseWriter, r *http.Request) {
 func AddBookToCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	addArgs := &AddBookToCollectionArgs{}
     
-	// decode request into argumets to function
+	// decode request into arguments to function
 	err := json.NewDecoder(r.Body).Decode(&addArgs)
     if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
