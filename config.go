@@ -18,3 +18,16 @@ func LoadConfig() (*Config, error) {
 	}
 	return &config, nil
 }
+
+func LoadTestConfig() (*Config, error) {
+	var config Config
+	configData, err := os.ReadFile("config_test.yml")
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(configData, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}

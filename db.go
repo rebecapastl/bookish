@@ -38,8 +38,6 @@ func CreateTables(db *sql.DB) error {
     );`)
 	if err != nil {
 		return err
-	} else {
-		fmt.Println("table authors ok")
 	}
 
 	// create collections table
@@ -50,8 +48,6 @@ func CreateTables(db *sql.DB) error {
     );`)
 	if err != nil {
 		return err
-	} else {
-		fmt.Println("table collections ok")
 	}
 
 	// create books table
@@ -67,8 +63,6 @@ func CreateTables(db *sql.DB) error {
     );`)
 	if err != nil {
 		return err
-	} else {
-		fmt.Println("table books ok")
 	}
 
 	// create book_in_collection table
@@ -81,8 +75,6 @@ func CreateTables(db *sql.DB) error {
     );`)
 	if err != nil {
 		return err
-	} else {
-		fmt.Println("table book_in_collection ok")
 	}
 
 	return nil
@@ -126,7 +118,9 @@ func ListAuthors(db *sql.DB, a AuthorArgs) ([]Author, error) {
 		}
 		authors = append(authors, author)
 	}
-	if err := rows.Err(); err != nil {
+
+    err = rows.Err()
+	if err != nil {
 		return nil, err
 	}
 
@@ -137,11 +131,11 @@ func CreateBook(db *sql.DB, b BookArgs) (*Book, error){
     var author *Author
     var err error
 
-	fmt.Println(b.Author)
 	// make sure author is not null(empty)
 	b.Author = SanitizeAuthorName(b.Author)
 
-    // try to fetch said author
+    // try to fetch said author, if there is no author no error returns
+    // it is just a heads up to the CreateBook function, so it creates a new author for the book
     authors, err := ListAuthors(db, AuthorArgs{Name: b.Author})
 	if err != nil{
 		return nil, err
@@ -341,12 +335,7 @@ func AddBookToCollection(db *sql.DB, a AddBookToCollectionArgs) (*Collection, *B
 		if err != nil{
 			return nil, nil, err
 		}
-        if len(books) == 0{
-            err = errors.New("no book with this ID was found in the batabase")
-			return nil, nil, err
-        } else {
-            book = &books[0]
-        }
+        book = &books[0]
     } else {
         err = errors.New("choose the book to add to the collection and insert its ID number")
 		return nil, nil, err
@@ -358,12 +347,7 @@ func AddBookToCollection(db *sql.DB, a AddBookToCollectionArgs) (*Collection, *B
 		if err != nil{
 			return nil, nil, err
 		}
-        if len(collections) == 0{
-            err = errors.New("no collections with this ID was found in the batabase ")
-			return nil, nil, err
-        } else {
-            collection = &collections[0]
-        }
+        collection = &collections[0]
     } else {
         err = errors.New("choose a collection to have the book added to its ID number")
 		return nil, nil, err
