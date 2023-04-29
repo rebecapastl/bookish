@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -51,7 +52,7 @@ func main() {
 		r.HandleFunc("/books", ListBookHandler).Methods("GET")
 		r.HandleFunc("/collections", ListCollectionHandler).Methods("GET")
 		r.HandleFunc("/collections", CreateCollectionHandler).Methods("POST")
-		r.HandleFunc("/collections/add_book", AddBookToCollectionHandler).Methods("POST")
+		r.HandleFunc("/collections/{collection_id}", AddBookToCollectionHandler).Methods("POST")
 
 
 		log.Fatal(http.ListenAndServe(":8080", r))
@@ -152,21 +153,35 @@ func ListCollectionHandler(w http.ResponseWriter, r *http.Request) {
 
 func AddBookToCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	addArgs := &AddBookToCollectionArgs{}
-    
-	// decode request into argumets to function
-	err := json.NewDecoder(r.Body).Decode(&addArgs)
-    if err != nil {
+
+	// decode request into arguments to function
+	err = json.NewDecoder(r.Body).Decode(addArgs)
+	if err != nil {
+		if err.Error() == "EOF" {
+			err = errors.New("no collection title set, collection not created")
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
+		return
+	}
+
+	// Extract collection_id from URL path
+	vars := mux.Vars(r)
+	collectionIDStr := vars["collection_id"]
+	addArgs.CollectionID, err = SanitizeIdNumber(&collectionIDStr)
+	if err != nil {
+		http.Error(w, "Invalid collection ID", http.StatusBadRequest)
+		return
+	}
+
+	// Call AddBookToCollection with the arguments
 	collection, book, err := AddBookToCollection(db, *addArgs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Return success status
 	message := fmt.Sprintf("Book %s added to collection %s\n", book.Title, collection.CollectionName)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(message))
-    
 }
